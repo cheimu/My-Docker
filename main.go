@@ -13,7 +13,7 @@ const usage = `mydocker is a simple container runtime implementation.
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "mydocker"
+	app.Name = "My-Docker"
 	app.Usage = usage
 
 	app.Commands = []cli.Command{
