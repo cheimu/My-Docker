@@ -1,0 +1,11 @@
+# github.com/Sirupsen/logrus v0.8.8-0.20151204141443-446d1c146faa
+## explicit
+github.com/Sirupsen/logrus
+# github.com/stretchr/testify v1.7.0
+## explicit
+# github.com/urfave/cli v1.19.1
+## explicit
+github.com/urfave/cli
+# golang.org/x/sys v0.0.0-20151211033651-833a04a10549
+## explicit
+golang.org/x/sys/unix
