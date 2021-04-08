@@ -27,12 +27,14 @@ func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume str
 	cgroupManager.Apply(parent.Process.Pid)
 
 	sendInitCommand(comArray, writePipe)
+	if tty {
+		parent.Wait()
+		// delete workspace
+		mntURL := "/root/mnt"
+		rootURL := "/root"
+		container.DeleteWorkSpace(rootURL, mntURL, volume)
+	}
 
-	parent.Wait()
-	mntURL := "/root/mnt"
-	rootURL := "/root"
-	container.DeleteWorkSpace(rootURL, mntURL, volume)
-	os.Exit(0)
 }
 
 func sendInitCommand(comArray []string, writePipe *os.File) {
