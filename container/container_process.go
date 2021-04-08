@@ -9,6 +9,23 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
+var (
+	RUNNING             string = "running"
+	STOP                string = "stopped"
+	Exit                string = "exited"
+	DefaultInfoLocation string = "/var/run/My-Docker/%s/"
+	ConfigName          string = "config.json"
+)
+
+type ContainerInfo struct {
+	Pid         string `json:"pid"`        // init process PID on host
+	Id          string `json:"id"`         // container id
+	Name        string `json:"name"`       // container name
+	Command     string `json:"command"`    // command running in init process
+	CreatedTime string `json:"createTime"` // created time
+	Status      string `json:"status"`     // container status
+}
+
 func NewParentProcess(tty bool, volume string) (*exec.Cmd, *os.File) {
 	readPipe, writePipe, err := NewPipe()
 	if err != nil {
