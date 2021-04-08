@@ -15,8 +15,8 @@ import (
 	log "github.com/Sirupsen/logrus"
 )
 
-func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume string, containerName string) {
-	parent, writePipe := container.NewParentProcess(tty, volume, containerName)
+func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume string, containerName string, imageName string) {
+	parent, writePipe := container.NewParentProcess(tty, volume, containerName, imageName)
 	if parent == nil {
 		log.Errorf("New parent process error")
 		return
@@ -25,7 +25,7 @@ func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume str
 		log.Error(err)
 	}
 	//record container info
-	containerName, err := recordContainerInfo(parent.Process.Pid, comArray, containerName)
+	containerName, err := recordContainerInfo(parent.Process.Pid, comArray, containerName, containerID, volume)
 	if err != nil {
 		log.Errorf("Record container info error %v", err)
 		return
@@ -41,10 +41,8 @@ func Run(tty bool, comArray []string, res *subsystems.ResourceConfig, volume str
 	if tty {
 		parent.Wait()
 		// delete workspace
-		mntURL := "/root/mnt"
-		rootURL := "/root"
-		container.DeleteWorkSpace(rootURL, mntURL, volume)
 		deleteContainerInfo(containerName)
+		container.DeleteWorkSpace(volume, containerName)
 	}
 
 }
@@ -56,14 +54,9 @@ func sendInitCommand(comArray []string, writePipe *os.File) {
 	writePipe.Close()
 }
 
-func recordContainerInfo(containerPID int, commandArray []string, containerName string) (string, error) {
-	id := randStringBytes(10)
+func recordContainerInfo(containerPID int, commandArray []string, containerName, id, volume string) (string, error) {
 	createTime := time.Now().Format("2006-01-02 15:04:05")
 	command := strings.Join(commandArray, "")
-	if containerName == "" {
-		containerName = id
-	}
-	// generate container information
 	containerInfo := &container.ContainerInfo{
 		Id:          id,
 		Pid:         strconv.Itoa(containerPID),
@@ -71,9 +64,9 @@ func recordContainerInfo(containerPID int, commandArray []string, containerName 
 		CreatedTime: createTime,
 		Status:      container.RUNNING,
 		Name:        containerName,
+		Volume:      volume,
 	}
 
-	// generate json and convert to string
 	jsonBytes, err := json.Marshal(containerInfo)
 	if err != nil {
 		log.Errorf("Record container info error %v", err)
@@ -81,7 +74,6 @@ func recordContainerInfo(containerPID int, commandArray []string, containerName 
 	}
 	jsonStr := string(jsonBytes)
 
-	// store the container information on the disk
 	dirUrl := fmt.Sprintf(container.DefaultInfoLocation, containerName)
 	if err := os.MkdirAll(dirUrl, 0622); err != nil {
 		log.Errorf("Mkdir error %s error %v", dirUrl, err)
